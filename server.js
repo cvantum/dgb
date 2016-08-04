@@ -27,6 +27,7 @@ try {
 }
 
 var core = new Core.Commands(config);
+core.incoming('test');
 
 //////////////////////////////////////
 // Starting the bot
