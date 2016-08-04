@@ -1,0 +1,8 @@
+{
+	"mongodb" : "",
+	"mongodb_user" : "",
+	"mongodb_pass" : "",
+	"discord_botOwner: "",
+        "discord_token" : ""
+}
+
