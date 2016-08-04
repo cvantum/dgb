@@ -1,0 +1,24 @@
+{
+  "name": "node-gamingbot",
+  "version": "1.0.0",
+  "description": "Discord-Bot for Social-Gaming",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cvantum/dgb.git"
+  },
+  "keywords": [
+    "discord",
+    "discord-js"
+  ],
+  "author": "Carsten",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cvantum/dgb/issues"
+  },
+  "homepage": "https://github.com/cvantum/dgb#readme"
+}
