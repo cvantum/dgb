@@ -27,7 +27,6 @@ try {
 }
 
 var core = new Core.Commands(config);
-core.incoming('test');
 
 //////////////////////////////////////
 // Starting the bot
@@ -38,6 +37,7 @@ mybot.loginWithToken(config.discord_token);
 
 mybot.on('ready', function () {
 	var statusMessage = [];
+	var serverArray = [];
 	console.log('Ready to begin! Serving on ' + mybot.servers.length + ' servers');
 	statusMessage.push('Bot was started');
 	statusMessage.push('Working on '+mybot.servers.length+' servers');
@@ -49,15 +49,34 @@ mybot.on('ready', function () {
 			//console.log(mybot.servers[server].owner.id);
 			statusMessage.push("**Name:  **"+mybot.servers[server].name);
 			statusMessage.push("Owner: "+mybot.servers[server].owner.username+'#'+mybot.servers[server].owner.discriminator);
+			serverArray.push({
+				'server_id': mybot.servers[server].id,
+				'server_name': mybot.servers[server].name,
+				'owner_id': mybot.servers[server].owner.id,
+				'admins': [mybot.servers[server].owner.id]});
 		}
 	}
 	mybot.setStatus('available','type ?help');
 	mybot.sendMessage(config.discord_botOwner,statusMessage.join('\n'));
+	//core.mongoUpdateServer(serverArray);
+	//core.mongoFindServer("115554690686648327");
 });
+
+function callback(response) {
+	console.log(response);
+	mybot.sendMessage("142177157773262848","tetstest");
+}
 
 //////////////////////////////////////
 // New Message
 
+mybot.on('message', function(msg) {
+	//if (msg.content.indexOf('?help') === 0) {
+	if (msg.channel.isPrivate) {
+		//console.log(msg);
+		core.mongoFindServer("115554690686648327",callback);
+	}
+});
 
 //////////////////////////////////////
 // Welcome-Message for new invitations
