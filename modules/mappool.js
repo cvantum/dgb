@@ -46,7 +46,10 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 		this.contentArray = [];
 		this.lockedPlayer = '';
 		this.isLocked = false;
+		this.lockedServer = {};
 		this.mappoolTempData = {
+			'isLocked' : false,
+			'lockedPlayer' : '',
 			'player_a' : '',
 			'player_b' : '',
 			'bo_mode' : [],
@@ -207,13 +210,15 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				process : function(bot,msg,values) {
 					console.log(values);
 					var response = [];
-					if (that.isLocked) {
+					if (that.lockedServer.hasOwnProperty(msg.server.id)) {
 						console.log(that);
 						response.push("Mappool-Wizard already started");
-					} else if (!that.isLocked && values.length === 2) {
+					} else if (values.length === 2) {
 						console.log(that);
 						that.isLocked = true;
 						that.lockedPlayer = msg.author.id;
+						that.lockedServer[msg.server.id]['isLocked'] = true;
+						that.lockedServer[msg.server.id]['lockedPlayer'] = msg.autho.id;
 						response.push("Successfully started Mappool-Wizard");
 						response.push("First, we need a second player.");
 						response.push("He can register himself with **\?opponent**");
@@ -228,9 +233,9 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				desc : "Register as second player to voting",
 				process : function(bot,msg,values) {
 					var response = [];
-					if (that.isLocked && that.lockedPlayer === msg.author.id) {
+					if (that.lockedServer.hasOwnProperty(msg.server.id) && that.lockedServer[msg.server.id]['lockedPlayer'] === msg.author.id) {
 						response.push("You can't be both players");
-					} else if (that.isLocked && that.lockedPlayer !== msg.author.id) {
+					} else {
 						response.push("Okay. We have two players in here. Let me make a cointoss");
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
@@ -240,11 +245,12 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				desc : "Abort voting",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (that.isLocked && that.lockedPlayer === msg.author.id) {
+					if (that.lockedServer.hasOwnProperty(msg.server.id) && that.lockedServer['lockedPlayer'] === msg.author.id) {
 						that.isLocked = false;
 						that.lockedPlayer = "";
+						delete that.lockedServer[msg.server.id];
 						response.push("Aborted Mappool-Wizard");
-					} else if (that.isLocked && that.lockedPlayer !== msg.author.id) {
+					} else if (that.lockedServer.hasOwnProperty(msg.server.id) && that.lockedServer['lockedPlayer'] !== msg.author.id) {
 						response.push("You are not allowed to cancel the Mappool-Wizard");
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
