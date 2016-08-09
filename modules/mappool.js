@@ -199,32 +199,43 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 		}
 
 	}
-
-	//Response on incoming message (also for Callbacks)
-	response(answer) {
-		this.bot.sendMessage(this.message.channel,answer);
-	}
 	getUserCommands() {
 		var that = this;
 		var commands = {
 			"start": {
 				desc : "Starting Mappool-Wizard",
 				process : function(bot,msg,values) {
+					console.log(values);
 					var response = [];
-					if (!that.isLocked) {
+					if (that.isLocked) {
+						console.log(that);
+						response.push("Mappool-Wizard already started");
+					} else if (!that.isLocked && values.length === 2) {
 						console.log(that);
 						that.isLocked = true;
 						that.lockedPlayer = msg.author.id;
 						response.push("Successfully started Mappool-Wizard");
-					} else {
-						console.log(that);
-						response.push("Mappool-Wizard already started");
+						response.push("First, we need a second player.");
+						response.push("He can register himself with **\?opponent**");
+					}else {
+						response.push("Looks like you have fotgot something");
+						response.push("**Example:** ```\?start bo3 ift```");
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
 				}
 			},
 			"opponent" : {
-				desc : "Register as second player to voting"},
+				desc : "Register as second player to voting",
+				process : function(bot,msg,values) {
+					var response = [];
+					if (that.isLocked && that.lockedPlayer === msg.author.id) {
+						response.push("You can't be both players");
+					} else if (that.isLocked && that.lockedPlayer !== msg.author.id) {
+						response.push("Okay. We have two players in here. Let me make a cointoss");
+					}
+					bot.sendMessage(msg.channel,response.join('\n'));
+				}
+			},
 			"abort" : {
 				desc : "Abort voting",
 				process: function(bot,msg,values) {
