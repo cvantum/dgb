@@ -10,6 +10,7 @@
 // Require-Statements for own modules
 
 const Core = require(process.env.PWD+'/modules/core.js');
+const Mappool = require(process.env.PWD+'/modules/mappool.js');
 
 
 
@@ -26,7 +27,10 @@ try {
 	process.exit(1);
 }
 
+//////////////////////////////////////
+// Starting Instances from modules
 var core = new Core.Commands(config);
+var mp = new Mappool.MappoolCommands(config);
 
 //////////////////////////////////////
 // Starting the bot
@@ -40,6 +44,7 @@ mybot.on('ready', function () {
 	var serverArray = [];
 	console.log('Ready to begin! Serving on ' + mybot.servers.length + ' servers');
 	statusMessage.push('Bot was started');
+	statusMessage.push('Command-Prefix: '+config.discord_prefix);
 	statusMessage.push('Working on '+mybot.servers.length+' servers');
 	for (var server in mybot.servers) {
 		if (typeof(mybot.servers[server]) === 'object' ) {
@@ -62,20 +67,65 @@ mybot.on('ready', function () {
 	//core.mongoFindServer("115554690686648327");
 });
 
-function callback(response) {
-	console.log(response);
-	mybot.sendMessage("142177157773262848","tetstest");
-}
+//var adminCommands = core.getAdminCommands();
+//var userCommands = core.getUserCommands();
+//console.log(adminCommands);
+//console.log(userCommands);
+
+var adminCommands = getAdminCommands();
+var userCommands = getUserCommands();
+
+console.log(adminCommands);
+console.log(userCommands);
+
 
 //////////////////////////////////////
 // New Message
-
 mybot.on('message', function(msg) {
 	//if (msg.content.indexOf('?help') === 0) {
-	if (msg.channel.isPrivate) {
-		//console.log(msg);
-		core.mongoFindServer("115554690686648327",callback);
+	
+	if (msg.author.id !== mybot.user.id && msg.content[0] === config.discord_prefix && msg.author.id === config.discord_botOwner) {
+		var command = msg.content.split(" ")[0].substring(1);
+		var values = msg.content.split(" ").slice(1);
+		//mybot.sendMessage(config.discord_botOwner, command);
+		//mybot.sendMessage(config.discord_botOwner, values.join("\n"));
+		if (command === "admin") {
+			console.log("Emitted admin-command");
+			var adminCmd = values[0];
+			var adminValues = values.slice(1);
+			if (adminCmd !== undefined ) {
+				console.log(adminCmd);
+				console.log(adminValues);
+				if (adminCommands.hasOwnProperty(adminCmd)) {
+					console.log("Found a valid admin-command");
+					adminCommands[adminCmd].process(mybot,msg,adminValues);
+				} else if (adminCmd === "help") {
+					var response = [];
+					for (var cmd in adminCommands) {
+						response.push('**'+config.discord_prefix+cmd+'**: '+adminCommands[cmd].desc)
+					}
+					mybot.sendMessage(msg.channel, response.join("\n"));
+					console.log("admin-help abfrage by: "+msg.author.username);
+				}
+			}
+		} else if (userCommands.hasOwnProperty(command)) {
+			console.log("Emitted user-command");
+			userCommands[command].process(mybot,msg,values);
+			
+		} else if ( command === "help") {
+			var response = [];
+			for (var cmd in userCommands) {
+				response.push('**'+config.discord_prefix+cmd+'**: '+userCommands[cmd].desc)
+			}
+			mybot.sendMessage(msg.channel, response.join("\n"));
+			console.log("help abfrage by: "+msg.author.username);
+		}
 	}
+
+	//if (msg.channel.isPrivate) {
+	//	//console.log(msg);
+	//	core.mongoFindServer("115554690686648327",callback);
+	//}
 });
 
 //////////////////////////////////////
@@ -87,8 +137,36 @@ mybot.on('serverCreated', function(server) {
 		'Be patient for upcoming features',
 		'For more informations please visit',
 		'https://github.com/cvantum/dgb'];
-	server.client.sendMessage(message.join('\n'));
+	//server.client.sendMessage(message.join('\n'));
 	console.log('New Server joined: '+server.name);
 	console.log('Server owner: '+server.owner.username+'#'+server.owner.discriminator);
 	mybot.sendMessage(config.discord_botOwner,'New Server joined: '+server.name+'\n'+'Server owner: '+server.owner.username+'#'+server.owner.discriminator);
 });
+
+//////////////////////////////////////
+// Get List of Commands for loaded modules
+function getAdminCommands() {
+	var commands = {};
+	var coreCommands = core.getAdminCommands();
+	for (var coreCmd in coreCommands) {
+		commands[coreCmd] = coreCommands[coreCmd];
+	}
+	var mpCommands = mp.getAdminCommands();
+	for (var mpCmd in mpCommands) {
+		commands[mpCmd] = mpCommands[mpCmd];
+	}
+	return commands;
+}
+
+function getUserCommands() {
+	var commands = {};
+	var coreCommands = core.getUserCommands();
+	for (var coreCmd in coreCommands) {
+		commands[coreCmd] = coreCommands[coreCmd];
+	}
+	var mpCommands = mp.getUserCommands();
+	for (var mpCmd in mpCommands) {
+		commands[mpCmd] = mpCommands[mpCmd];
+	}
+	return commands;
+}

@@ -10,6 +10,9 @@ class MongoCommands {
 	constructor() {
 		console.log('Staring Mongo-Commands (if i need them)');
 	}
+	getInformations(values) {
+		console.log(values);
+	}
 }
 
 exports.Commands = class Commands extends MongoCommands{
@@ -18,7 +21,55 @@ exports.Commands = class Commands extends MongoCommands{
 		this.config = config;
 		this.url = 'mongodb://'+config.mongodb_user+':'+config.mongodb_pass+'@localhost:20729/'+config.mongodb+'?authMechanism=DEFAULT&authSource='+config.mongodb;
 	}
+	//Entry-Point for Admin-Commands	
+	getAdminCommands() {
+		var that = this;
+		var url = this.url;
+		var commands = {
+			"info" : {
+				desc : "Get stored informations about this discord-server",
+				process: function(bot,msg,values) {
+					that.mongoFindServer("115554690686648327",function(response) {
+						console.log(response);
+						bot.sendMessage(msg.channel,"tetstest")
+						console.log('admin-info abfrage by: ' + msg.author.username );
+					});
+				}
+			}
+		}
+		return commands;
+	}
+	//Entry-Point for User-Commands	
+	getUserCommands() {
+		var that = this;
+		var url = this.url;
+		var commands = {
+			"info" : {
+				desc : "Get details of bot, developer and further informations",
+				process: function(bot,msg,values) {
+					var response = [];
+					var infoText = 'Uptime: ';
+					var time = bot.uptime;
+					var numSec = time / 1000;
+					var hour = Math.floor(numSec / 3600);
+					var minute = Math.floor( ((numSec - (hour * 3600))/60) );
+					var second = numSec - (hour*3600) - (minute*60);
 
+					infoText += hour.toString() + ' hour(s), ';
+					infoText += minute.toString() + ' minute(s) ';
+					infoText += second.toString().split('.')[0] + ' second(s) \n';
+					response.push(infoText);
+					response.push('Repository: https://github.com/cvantum/discord-bot');
+					response.push('For help, issues and feature-requests send a message to \@cvantum');
+					bot.sendMessage(msg.channel, response.join('\n'));
+					// Log to console
+					console.log('info abfrage by: ' + msg.author.username );
+				}
+			}
+		}
+		return commands;
+	}
+	
 	//Update Server-Collection at Start
 	mongoUpdateServer(serverArray) {
 		var url = this.url;
@@ -76,3 +127,4 @@ exports.Commands = class Commands extends MongoCommands{
 		});
 	}
 }
+
