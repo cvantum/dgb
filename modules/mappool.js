@@ -4,268 +4,159 @@
 
 "use strict";
 var fs = require("fs");
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
+var co = require('co');
 
 class MappoolCore {
 	constructor(config) {
-		this.config = config;
-		//this.configFile = process.env.PWD+'/config/'+config;
+		var that = this;
+		that.config = config;
 		console.log("Starting Mappool-Core");
-		console.log(this.config);
-		//try {
-		//	fs.accessSync(this.configFile, fs.F_OK);
-		//	this.config = require(this.configFile);
-		//} catch (error) {
-		//	console.error('Could not find File: '+this.configFile);
-		//	process.exit(1);
-		//}
 	}
 	cointoss() {
 		return Math.floor(Math.random() * 2);
 	}
-	getFullData() {
-		return this.config;
+	//Grant Access to Admin-Commands
+	mongoGrantAdmin(url,serverId,callback) {
+		co(function* () {
+			var db = yield MongoClient.connect(url);
+			console.log("Connected correctly to MongoDB");
+			var col = db.collection('server');
+			var result = yield col.find({"server_id" : serverId}).toArray();
+			//console.log(result);
+			callback(result);
+			db.close();
+		}).catch( function(err) {
+			console.log(err);
+		});
 	}
-	getMappoolByKey(gameMode) {
-		//console.log(gameMode);
-		//console.log(this.config[gameMode]);
-		return this.config[gameMode];
+	//Seach for valid game and pick-mode
+	mongoActiveModule(url,serverId,callback) {
+		co(function* () {
+			var db = yield MongoClient.connect(url);
+			console.log("Connected correctly to MongoDB");
+			var col = db.collection('server');
+			var result = yield col.find({"server_id" : serverId, "modules": {$in : ["mappool"]}}).toArray();
+			callback(result);
+			db.close();
+		}).catch( function(err) {
+			console.log(err);
+		});
 	}
-	getBestOfModeByKey(boMode) {
-		//console.log(boMode);
-		//console.log(this.config["pick-mode"][boMode])
-		return this.config["pick-mode"][boMode];
-	}
-
 }
 
 exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 	constructor(config) {
 		super(config);
-		//this.bot = bot;
-		this.message = {};
-		this.contentArray = [];
-		this.lockedPlayer = '';
-		this.isLocked = false;
-		this.lockedServer = {};
-		this.mappoolTempData = {
-			'isLocked' : false,
-			'lockedPlayer' : '',
-			'player_a' : '',
-			'player_b' : '',
-			'bo_mode' : [],
-			'mappool' : []
-		};
-		this.returnMsg = [];
-	}
-	//centralized function for incoming messages
-	incoming(msg) {
-		this.message = msg;
-		//console.log(this.message);
-		this.contentArray = this.message.content.split(' ');
-		//console.log(this.message.content.split(' '));
-		switch (this.contentArray[0]) {
-			case '?help':
-				console.log('Asking for help in mappool-module');
-				var helpFile = process.env.PWD+'/docs/help-mappool.md';
-				try {
-					fs.accessSync(helpFile, fs.F_OK);
-					this.returnMsg.push(fs.readFileSync(helpFile, "utf8") );
-				} catch (error) {
-					console.error('Could not find File: '+helpFile);
-				}
-				break;
-			case '?mappool':
-				var fullInfo = super.getFullData();
-				this.returnMsg.push('**Current Pool**') ;
-				for (var pool in fullInfo) {
-					if (pool !== 'pick-mode') {
-						//console.log(pool);
-						this.returnMsg.push('*'+pool+'*: '+fullInfo[pool].join(', ') );
-					}
-				}
-				break;
-			case '?start':
-				if (this.isLocked) {
-					this.returnMsg.push('A vote is already started. Type **\?abort** to cancel your first inputs' );
-					console.log('mappool try to restart by: ' + msg.author.username );
-				} else {
-					console.log(this.contentArray.length);
-					if (this.contentArray.length === 3 ) {
-						this.lockedPlayer = msg.author.id;
-						this.isLocked = true;
-						this.mappoolTempData['player_a'] = msg.author.id;
-						this.mappoolTempData['bo_mode'] = super.getBestOfModeByKey(this.contentArray[1]);
-						this.mappoolTempData['mappool'] = super.getMappoolByKey(this.contentArray[2]);
-						console.log(this.mappoolTempData);
-						//Giving player a chance to start the wizard with valid data
-						if (this.mappoolTempData['bo_mode'] === undefined || this.mappoolTempData['mappool'] === undefined) {
-							this.returnMsg.push('Looks like i did not found something votable. Please try again.');
-							this.lockedPlayer = '';
-							this.isLocked = false;
-							this.mappoolTempData = {
-								'player_a' : '',
-								'player_b' : '',
-								'bo_mode' : [],
-								'mappool' : []
-							};
-							console.log('mappool canceled while undefined data by: ' + msg.author.username );
-						} else {
-							this.returnMsg.push('Starting the Mappool-Wizard' );
-							this.returnMsg.push('We need a second player!');
-							this.returnMsg.push('Second-Player can register by typing **\?opponent**' );
-							console.log('mappool start by: ' + msg.author.username );
-						}
-					} else {
-						this.returnMsg.push( 'Looks like you have forgotten some additional parameters' );
-						this.returnMsg.push( '**Example:** ```\?start bo3 ift```' );
-					}
-				}
-				break;
-			case '?abort':
-				if (msg.author.id === this.lockedPlayer && this.isLocked) {
-					this.returnMsg.push( 'Aborting the Mappool-Wizard. You can restart it by typing **\?start** ' );
-					//Deleting user who locked the wizard
-					this.lockedPlayer = '';
-					this.isLocked = false;
-					this.mappoolTempData = {
-						'player_a' : '',
-						'player_b' : '',
-						'bo_mode' : [],
-						'mappool' : []
-					};
-					console.log('mappool abort by: ' + msg.author.username );
-				} else if (this.isLocked) {
-					this.returnMsg.push( 'Aborting the vote is only possible by the player who started this process' );
-				} else {
-					console.log('mappool try to abort before starting it: ' + msg.author.username );
-				}
-				break;
-			case '?done':
-				if (msg.author.id === this.lockedPlayer && this.isLocked) {
-					this.returnMsg.push( 'Looks like we are done here. Have fun and good luck' );
-					//Deleting user who locked the wizard
-					this.lockedPlayer = '';
-					this.isLocked = false;
-					this.mappoolTempData = {
-						'player_a' : '',
-						'player_b' : '',
-						'bo_mode' : [],
-						'mappool' : []
-					};
-					console.log('mappool done by: ' + msg.author.username );
-				} else if (this.isLocked) {
-					this.returnMsg.push( 'Closing the vote is only possible by the player who started this process' );
-				} else {
-					console.log('mappool try to save data without starting it: ' + msg.author.username );
-				}
-				break;
-			case '?opponent':
-				console.log(this.mappoolTempData);
-				if (this.isLocked) {
-					if (msg.author.id === this.mappoolTempData['player_a']) {
-						this.returnMsg.push( 'You cannot be both players' );
-						console.log('mappool player_a has tried to be player_b: ' + msg.author.username );
-					} else {
-						this.mappoolTempData['player_b'] = msg.author.id;
-						this.returnMsg.push( 'Okay. We have two players in here. Let me make a cointoss' );
-						if (super.cointoss() === 0) {
-							this.returnMsg.push('Winner is Player A');
-						} else {
-							this.returnMsg.push('Winner is Player B');
-						}
-
-						console.log('mappool found player_b: ' + msg.author.username );
-					}
-				}
-				break;
-			case '?pick':
-				console.log(super.cointoss());
-				break;
-			case '?drop':
-				break;
-			default:
-				break;
-
-		}
-		this.response(this.returnMsg.join('\n'));
-		return;
+		var that = this;
+		that.lockedServers = {};
+		that.url = 'mongodb://'+config.mongodb_user+':'+config.mongodb_pass+'@localhost:20729/'+config.mongodb+'?authMechanism=DEFAULT&authSource='+config.mongodb;
 	}
 
-	//Starting the Wizard
-	start() {
-		const mapPool = super.getMappoolByKey("ift-mappool");
-		const boMode = super.getBestOfModeByKey("bo3");
-		console.log(mapPool);
-		//console.log(boMode);
-		for (var choose in boMode) {
-			console.log(boMode[choose]);
-		}
-
-	}
 	getUserCommands() {
 		var that = this;
 		var commands = {
 			"start": {
 				desc : "Starting Mappool-Wizard",
+				example : "**Example:** ```\?start ift bo3```",
 				process : function(bot,msg,values) {
 					console.log(values);
-					var response = [];
-					if (that.lockedServer.hasOwnProperty(msg.server.id)) {
-						console.log(that);
-						response.push("Mappool-Wizard already started");
-					} else if (values.length === 2) {
-						console.log(that);
-						that.isLocked = true;
-						that.lockedPlayer = msg.author.id;
-						that.lockedServer[msg.server.id]['isLocked'] = true;
-						that.lockedServer[msg.server.id]['lockedPlayer'] = msg.autho.id;
-						response.push("Successfully started Mappool-Wizard");
-						response.push("First, we need a second player.");
-						response.push("He can register himself with **\?opponent**");
-					}else {
-						response.push("Looks like you have fotgot something");
-						response.push("**Example:** ```\?start bo3 ift```");
+					if (msg.server !== undefined) {
+						that.mongoActiveModule(that.url,msg.server.id,function(response) {
+							var responseMsg = [];
+							if (response.length === 0) {
+								responseMsg.push("Looks like this Server didn't activated the Mappool-Wizard");
+							} else if (that.lockedServers.hasOwnProperty(msg.server.id)) {
+								responseMsg.push("Mappool-Wizard already started");
+							} else if (values.length === 2) {
+								//console.log(response[0]["games"][values[0]]["pick-modes"][values[1]]);
+								if (!response[0]["games"].hasOwnProperty(values[0])) {
+									responseMsg.push("Didn't found any game called: "+values[0]);
+								} else if (!response[0]["games"][values[0]]["pick_modes"].hasOwnProperty(values[1])) {
+									responseMsg.push("Didn't found any mode called: "+values[1]);
+								} else {
+									var server = that.getTempDataMethod();
+									console.log(server);
+									server['isLocked'] = true;
+									server['lockedPlayer'] = msg.author.id;
+									server['player_a'] = msg.author.id;
+									server['bo_mode'] = response[0]["games"][values[0]]["pick_modes"][values[1]];
+									server['mappool'] = response[0]["games"][values[0]]["mappool"];
+									server['game'] = values[1];
+									that.lockedServers[msg.server.id] = server;
+									responseMsg.push("**Successfully started Mappool-Wizard**");
+									responseMsg.push("**Mappool is:**\n"+response[0]["games"][values[0]]["mappool"].join("\n"));
+									responseMsg.push("**Voting-Mode is: **"+response[0]["games"][values[0]]["pick_modes"][values[1]].join("-"));
+									responseMsg.push("First, we need a second player.");
+									responseMsg.push("He can register himself with **\?opponent**");
+								}
+							} else {
+								responseMsg.push("Looks like you have forgot something");
+								responseMsg.push("**Example:** ```\?start ift bo3```");
+							}
+							bot.sendMessage(msg.channel,responseMsg.join('\n'));
+						});
+					} else {
+						bot.sendMessage(msg.channel,"You can't start this process in PM");
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
 				}
 			},
 			"opponent" : {
 				desc : "Register as second player to voting",
+				example : "**Example:** ```\?opponent```",
 				process : function(bot,msg,values) {
 					var response = [];
-					if (that.lockedServer.hasOwnProperty(msg.server.id) && that.lockedServer[msg.server.id]['lockedPlayer'] === msg.author.id) {
+					console.log(that.lockedServers);
+					if (msg.server === undefined) {
+						response.push("You can't add yourself to the process with a PM");
+					} else if (!that.lockedServers.hasOwnProperty(msg.server.id)) {
+						response.push("Looks like there is no voting started, use  **\?start**");
+					} else if (that.lockedServers[msg.server.id]['lockedPlayer'] === msg.author.id) {
 						response.push("You can't be both players");
 					} else {
+						that.lockedPlayers[msg.server.id]['player_b'] = msg.author.id;
 						response.push("Okay. We have two players in here. Let me make a cointoss");
+					}
+					if (that.cointoss() === 0) {
+						console.log('Cointoss-Winner = Player A');
+					} else {
+						console.log('Cointoss-Winner = Player B');
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
 				}
 			},
 			"abort" : {
 				desc : "Abort voting",
+				example : "**Example:** ```\?abort```",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (that.lockedServer.hasOwnProperty(msg.server.id) && that.lockedServer['lockedPlayer'] === msg.author.id) {
-						that.isLocked = false;
-						that.lockedPlayer = "";
-						delete that.lockedServer[msg.server.id];
+					if (msg.server === undefined) {
+						response.push("You can't abort the process with a PM");
+					} else if (that.lockedServers.hasOwnProperty(msg.server.id) && that.lockedServers[msg.server.id]['lockedPlayer'] === msg.author.id) {
+						delete that.lockedServers[msg.server.id];
 						response.push("Aborted Mappool-Wizard");
-					} else if (that.lockedServer.hasOwnProperty(msg.server.id) && that.lockedServer['lockedPlayer'] !== msg.author.id) {
+					} else if (that.lockedServers.hasOwnProperty(msg.server.id) && that.lockedServer['lockedPlayer'] !== msg.author.id) {
 						response.push("You are not allowed to cancel the Mappool-Wizard");
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
 				}
 			},
 			"done" : {
-				desc : "Close voting"},
+				desc : "Close voting",
+				example : "**Example:** ```\?done```"},
 			"mappool" : {
-				desc : "List current mappool"},
-			"pick" : {
-				desc : "Pick a map (if it's your turn)"},
+				desc : "List current mappool",
+				example : "**Example:** ```\?mappool | \?mappool <game>```"},
+			"pick" : { 
+				desc : "Pick a map (if it's your turn)",
+				example : "**Example:** ```\?pick <number>```"},
 			"drop" : {
-				desc : "Drop a map (if it's your turn)"},
+				desc : "Drop a map (if it's your turn)",
+				example : "**Example:** ```\?drop <number>```"},
 			"voted" : {
-				desc : "Show voted / dropped maps"}
+				desc : "Show voted / dropped maps",
+				example : "**Example:** ```\?voted```"}
 		}
 		return commands;
 	}
@@ -273,9 +164,27 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 		var that = this;
 		var commands = {
 			"addGame" : {
-				desc : "Add a new game to Wizard"},
+				desc : "Add a new game to Wizard",
+				example : "**Example:** ```\?admin addGame <game>```",
+				process : function(bot,msg,values) {
+						console.log(that.url);
+						that.mongoGrantAdmin(that.url,msg.server.id,function(response) {
+							console.log(response[0]);
+							console.log(msg.author.id);
+							console.log(response[0]['admins']);
+							if (response[0]['admins'].indexOf(msg.author.id) > -1) {
+								bot.sendMessage(msg.channel,"You have granted admin-access");
+							} else {
+								bot.sendMessage(msg.channel,"You are not a admin for this server");
+							}
+							console.log('admin-access abfrage by: ' + msg.author.username );
+						});
+					}
+				},
 			"delGame" : {
-				desc : "Delete a game from Wizard"},
+				desc : "Delete a game from Wizard",
+				example : "**Example:** ```\?admin delGame <game>```",
+			},
 			"addVote" : {
 				desc : "Add a pick-drop mode to a game"},
 			"delVote" : {
@@ -290,5 +199,24 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				desc : "Update a mapoool for a game"}
 		}
 		return commands;
+	}
+
+	getTempDataMethod() {
+		return {
+			'isLocked' : false,
+			'lockedPlayer' : '',
+			'player_a' : '',
+			'player_b' : '',
+			'cointoss_winner': '',
+			'bo_mode' : [],
+			'game' : '',
+			'mappool' : []
+			};
+	}
+	getTempGameMethod() {
+		return {
+			'pick-modes' : {},
+			'mappool' : []
+			};
 	}
 }

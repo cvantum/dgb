@@ -84,7 +84,8 @@ console.log(userCommands);
 mybot.on('message', function(msg) {
 	//if (msg.content.indexOf('?help') === 0) {
 	
-	if (msg.author.id !== mybot.user.id && msg.content[0] === config.discord_prefix && msg.author.id === config.discord_botOwner) {
+	//if (msg.author.id !== mybot.user.id && msg.content[0] === config.discord_prefix && msg.author.id === config.discord_botOwner) {
+	if (msg.author.id !== mybot.user.id && msg.content[0] === config.discord_prefix) {
 		var command = msg.content.split(" ")[0].substring(1);
 		var values = msg.content.split(" ").slice(1);
 		//mybot.sendMessage(config.discord_botOwner, command);
@@ -114,8 +115,13 @@ mybot.on('message', function(msg) {
 			
 		} else if ( command === "help") {
 			var response = [];
-			for (var cmd in userCommands) {
-				response.push('**'+config.discord_prefix+cmd+'**: '+userCommands[cmd].desc)
+			if (values.length === 0) {
+				for (var cmd in userCommands) {
+					response.push('**'+config.discord_prefix+cmd+'**: '+userCommands[cmd].desc)
+				}
+			} else if (userCommands.hasOwnProperty(values[0])) {
+				console.log(userCommands[values[0]].example);
+				response.push(userCommands[values[0]].example);
 			}
 			mybot.sendMessage(msg.channel, response.join("\n"));
 			console.log("help abfrage by: "+msg.author.username);

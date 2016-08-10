@@ -30,8 +30,12 @@ exports.Commands = class Commands extends MongoCommands{
 				desc : "Get stored informations about this discord-server",
 				process: function(bot,msg,values) {
 					that.mongoFindServer("115554690686648327",function(response) {
-						console.log(response);
-						bot.sendMessage(msg.channel,"tetstest")
+						console.log(response[0]);
+						if (response[0]['admins'].indexOf(msg.author.id) > -1) {
+							bot.sendMessage(msg.channel,"You have granted admin-access");
+						} else {
+							bot.sendMessage(msg.channel,"You are not a admin for this server");
+						}
 						console.log('admin-info abfrage by: ' + msg.author.username );
 					});
 				}
@@ -59,8 +63,8 @@ exports.Commands = class Commands extends MongoCommands{
 					infoText += minute.toString() + ' minute(s) ';
 					infoText += second.toString().split('.')[0] + ' second(s) \n';
 					response.push(infoText);
-					response.push('Repository: https://github.com/cvantum/discord-bot');
-					response.push('For help, issues and feature-requests send a message to \@cvantum');
+					response.push('Repository: https://github.com/cvantum/dgb');
+					response.push('For help, issues and feature-requests send a message to **\@cvantum**');
 					bot.sendMessage(msg.channel, response.join('\n'));
 					// Log to console
 					console.log('info abfrage by: ' + msg.author.username );
