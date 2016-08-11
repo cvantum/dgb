@@ -17,7 +17,7 @@ class MappoolCore {
 	cointoss() {
 		return Math.floor(Math.random() * 2);
 	}
-	//Grant Access to Admin-Commands
+	// Grant Access to Admin-Commands
 	mongoGrantAdmin(url,serverId,callback) {
 		co(function* () {
 			var db = yield MongoClient.connect(url);
@@ -31,13 +31,41 @@ class MappoolCore {
 			console.log(err);
 		});
 	}
-	//Seach for valid game and pick-mode
+	// Seach for valid game and pick-mode
 	mongoActiveModule(url,serverId,callback) {
 		co(function* () {
 			var db = yield MongoClient.connect(url);
 			console.log("Connected correctly to MongoDB");
 			var col = db.collection('server');
 			var result = yield col.find({"server_id" : serverId, "modules": {$in : ["mappool"]}}).toArray();
+			callback(result);
+			db.close();
+		}).catch( function(err) {
+			console.log(err);
+		});
+	}
+	// Find specified Server
+	mongoFindServer(url,serverId,callback) {
+		co(function* () {
+			var db = yield MongoClient.connect(url);
+			console.log("Connected correctly to MongoDB");
+			var col = db.collection('server');
+			var result = yield col.find({"server_id" : serverId, "modules": {$in : ["mappool"]}}).toArray();
+			callback(result);
+			db.close();
+		}).catch( function(err) {
+			console.log(err);
+		});
+	}
+	// Update Specified Server
+	mongoUpdateServer(url,serverId,data,callback) {
+		co(function* () {
+			var db = yield MongoClient.connect(url);
+			console.log("Connected correctly to MongoDB");
+			var col = db.collection('server');
+			var result = yield col.updateOne({"server_id" : serverId}, {$set: data });
+			assert.equal(1, r.matchedCount);
+			assert.equal(1, r.modifiedCount);
 			callback(result);
 			db.close();
 		}).catch( function(err) {
@@ -80,13 +108,19 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 									console.log(server);
 									server['isLocked'] = true;
 									server['lockedPlayer'] = msg.author.id;
-									server['player_a'] = msg.author.id;
+									server['player_a'] = msg.author;
 									server['bo_mode'] = response[0]["games"][values[0]]["pick_modes"][values[1]];
 									server['mappool'] = response[0]["games"][values[0]]["mappool"];
-									server['game'] = values[1];
+									server['mappool_remain'] = response[0]["games"][values[0]]["mappool"];
+									server['game'] = values[0];
+									console.log(server);
 									that.lockedServers[msg.server.id] = server;
 									responseMsg.push("**Successfully started Mappool-Wizard**");
-									responseMsg.push("**Mappool is:**\n"+response[0]["games"][values[0]]["mappool"].join("\n"));
+									//responseMsg.push("**Mappool is:**\n"+response[0]["games"][values[0]]["mappool"].join("\n"));
+									responseMsg.push("**Mappool is:**");
+									for (var map in response[0]["games"][values[0]]["mappool"]) {
+										responseMsg.push(String(Number(map)+1)+": "+response[0]["games"][values[0]]["mappool"][map]);
+									}
 									responseMsg.push("**Voting-Mode is: **"+response[0]["games"][values[0]]["pick_modes"][values[1]].join("-"));
 									responseMsg.push("First, we need a second player.");
 									responseMsg.push("He can register himself with **\?opponent**");
@@ -107,7 +141,6 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?opponent```",
 				process : function(bot,msg,values) {
 					var response = [];
-					console.log(that.lockedServers);
 					if (msg.server === undefined) {
 						response.push("You can't add yourself to the process with a PM");
 					} else if (!that.lockedServers.hasOwnProperty(msg.server.id)) {
@@ -115,15 +148,24 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					} else if (that.lockedServers[msg.server.id]['lockedPlayer'] === msg.author.id) {
 						response.push("You can't be both players");
 					} else {
-						that.lockedPlayers[msg.server.id]['player_b'] = msg.author.id;
+						that.lockedServers[msg.server.id]['player_b'] = msg.author;
 						response.push("Okay. We have two players in here. Let me make a cointoss");
-					}
-					if (that.cointoss() === 0) {
-						console.log('Cointoss-Winner = Player A');
-					} else {
-						console.log('Cointoss-Winner = Player B');
+						if (that.cointoss() === 0) {
+							console.log('Cointoss-Winner = Player A');
+							that.lockedServers[msg.server.id]['curr_voter'] = that.lockedServers[msg.server.id]['player_a']
+							that.lockedServers[msg.server.id]['next_voter'] = that.lockedServers[msg.server.id]['player_b']
+							response.push("Winner of cointoss is: "+that.lockedServers[msg.server.id]['player_a'].toString());
+							response.push("You can start with **\?"+that.lockedServers[msg.server.id]['bo_mode'][0]+'**');
+						} else {
+							console.log('Cointoss-Winner = Player B');
+							that.lockedServers[msg.server.id]['curr_voter'] = that.lockedServers[msg.server.id]['player_b']
+							that.lockedServers[msg.server.id]['next_voter'] = that.lockedServers[msg.server.id]['player_a']
+							response.push("Winner of cointoss is: "+that.lockedServers[msg.server.id]['player_b'].toString());
+							response.push("You can start with **\?"+that.lockedServers[msg.server.id]['bo_mode'][0]+'**');
+						}
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
+					
 				}
 			},
 			"abort" : {
@@ -144,16 +186,70 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			},
 			"done" : {
 				desc : "Close voting",
-				example : "**Example:** ```\?done```"},
+				example : "**Example:** ```\?done```",
+				process: function(bot,msg,values) {
+					var response = [];
+					if (msg.server === undefined) {
+						response.push("You can't saving the process with a PM");
+					} else if (that.lockedServers.hasOwnProperty(msg.server.id) && that.lockedServers[msg.server.id]['lockedPlayer'] === msg.author.id) {
+						delete that.lockedServers[msg.server.id];
+						response.push("Saved finished  Mappool-Wizard");
+					} else if (that.lockedServers.hasOwnProperty(msg.server.id) && that.lockedServer['lockedPlayer'] !== msg.author.id) {
+						response.push("You are not allowed to unlock the Mappool-Wizard");
+					}
+					bot.sendMessage(msg.channel,response.join('\n'));
+				}	
+			},
 			"mappool" : {
 				desc : "List current mappool",
 				example : "**Example:** ```\?mappool | \?mappool <game>```"},
 			"pick" : { 
 				desc : "Pick a map (if it's your turn)",
-				example : "**Example:** ```\?pick <number>```"},
+				example : "**Example:** ```\?pick <number>```",
+				process: function(bot,msg,values) {
+					var response = [];
+					if (msg.server === undefined) {
+						response.push("You can't pick a map in PM");
+					} else if (!that.lockedServers.hasOwnProperty(msg.server.id)) {
+						response.push("There isn't something you can vote");
+					} else if (isNaN(values[0])) {
+						response.push("Please just write down a number");
+					} else if (that.lockedServers[msg.server.id]['curr_player'] === msg.author && 
+					that.lockedServers[msg.server.id]['bo_mode'][that.lockedServers[msg.server.id]['turn_number']] === 'pick') {
+						console.log("Voter: "+msg.author.id+"picked "+that.lockedServers[msg.server.id]['mappool'][Number(values[0])]);
+						that.lockedServers[msg.server.id]['mappool_voted'].push(that.lockedServers[msg.server.id]['mappool'][Number(values[0])])
+					}
+					bot.sendMessage(msg.channel,response.join('\n'));
+					if (that.lockedServers[msg.server.id]['turn_number'] === that.lockedServers[msg.server.id]['bo_mode'].length) {
+						console.log("Reached end of votes");
+					} else {
+						console.log("Go ahead with next vote");
+					}
+				}
+			},
 			"drop" : {
 				desc : "Drop a map (if it's your turn)",
-				example : "**Example:** ```\?drop <number>```"},
+				example : "**Example:** ```\?drop <number>```",
+				process: function(bot,msg,values) {
+					var response = [];
+					if (msg.server === undefined) {
+						response.push("You can't drop a map in PM");
+					} else if (!that.lockedServers.hasOwnProperty(msg.server.id)) {
+						response.push("There isn't something you can vote");
+					} else if (isNaN(values[0])) {
+						response.push("Please just write down a number");
+					} else if (that.lockedServers[msg.server.id]['curr_player'] === msg.author && 
+					that.lockedServers[msg.server.id]['bo_mode'][that.lockedServers[msg.server.id]['turn_number']] === 'pick') {
+						console.log("Voter: "+msg.author.id+"dropped "+that.lockedServers[msg.server.id]['mappool'][Number(values[0])]);
+					}
+					bot.sendMessage(msg.channel,response.join('\n'));
+					if (that.lockedServers[msg.server.id]['turn_number'] === that.lockedServers[msg.server.id]['bo_mode'].length) {
+						console.log("Reached end of votes");
+					} else {
+						console.log("Go ahead with next vote");
+					}
+				}
+			},
 			"voted" : {
 				desc : "Show voted / dropped maps",
 				example : "**Example:** ```\?voted```"}
@@ -205,18 +301,18 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 		return {
 			'isLocked' : false,
 			'lockedPlayer' : '',
-			'player_a' : '',
-			'player_b' : '',
+			'player_a' : {},
+			'player_b' : {},
 			'cointoss_winner': '',
 			'bo_mode' : [],
 			'game' : '',
-			'mappool' : []
-			};
-	}
-	getTempGameMethod() {
-		return {
-			'pick-modes' : {},
-			'mappool' : []
+			'turn_number' : 0,
+			'curr_voter' : {},
+			'next_voter' : {},
+			'mappool' : [],
+			'mappool_remain' : [],
+			'mappool_voted' : [],
+			'mappool_dropped' : []
 			};
 	}
 }
