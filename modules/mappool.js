@@ -202,7 +202,19 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			},
 			"mappool" : {
 				desc : "List current mappool",
-				example : "**Example:** ```\?mappool | \?mappool <game>```"},
+				example : "**Example:** ```\?mappool | \?mappool <game>```",
+				process: function(bot,msg,values) {
+					var response = [];
+					if (msg.server === undefined) {
+						response.push("You can't get any results in PM");
+					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
+						response.push("There is no process running at the moment");
+					} else {
+						response.push("List of current mappool");
+					}
+					bot.sendMessage(msg.channel,response.join('\n'));
+				}
+			},
 			"pick" : {
 				desc : "Pick a map (if it's your turn)",
 				example : "**Example:** ```\?pick <number>```",
@@ -214,8 +226,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("There isn't something you can vote");
 					} else if (isNaN(values[0])) {
 						response.push("Please just write down a number");
-					} else if (self.lockedServers[msg.server.id]['curr_player'] === msg.author &&
-					self.lockedServers[msg.server.id]['bo_mode'][self.lockedServers[msg.server.id]['turn_number']] === 'pick') {
+					} else if (self.lockedServers[msg.server.id]['curr_player'] === msg.author && self.lockedServers[msg.server.id]['bo_mode'][self.lockedServers[msg.server.id]['turn_number']] === 'pick') {
 						console.log("Voter: "+msg.author.id+"picked "+self.lockedServers[msg.server.id]['mappool'][Number(values[0])]);
 						self.lockedServers[msg.server.id]['mappool_voted'].push(self.lockedServers[msg.server.id]['mappool_remain'][Number(values[0])]);
 						self.lockedServers[msg.server.id]['mappool_remain'].pop(self.lockedServers[msg.server.id]['mappool_remain'][Number(values[0])]);
@@ -248,9 +259,17 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("There isn't something you can vote");
 					} else if (isNaN(values[0])) {
 						response.push("Please just write down a number");
-					} else if (self.lockedServers[msg.server.id]['curr_player'] === msg.author &&
-					self.lockedServers[msg.server.id]['bo_mode'][self.lockedServers[msg.server.id]['turn_number']] === 'pick') {
+					} else if (self.lockedServers[msg.server.id]['curr_player'] === msg.author && self.lockedServers[msg.server.id]['bo_mode'][self.lockedServers[msg.server.id]['turn_number']] === 'pick') {
 						console.log("Voter: "+msg.author.id+"dropped "+self.lockedServers[msg.server.id]['mappool'][Number(values[0])]);
+						self.lockedServers[msg.server.id]['mappool_remain'].pop(self.lockedServers[msg.server.id]['mappool_remain'][Number(values[0])]);
+						self.lockedServers[msg.server.id]['turn_number'] += 1;
+						self.lockedServers[msg.server.id]['curr_voter'] = self.lockedServers[msg.server.id]['next_voter'];
+						self.lockedServers[msg.server.id]['next_voter'] = msg.author;
+						response.join("Thanks for your vote");
+						response.join("Remaining mappool:");
+						for (maps in self.lockedServers[msg.server.id]['mappool_remain']) {
+							response.join(String(Number(maps)+1)+": "+self.lockedServers[msg.server.id]['mappool_remain'][maps]);
+						}
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
 					if (self.lockedServers[msg.server.id]['turn_number'] === self.lockedServers[msg.server.id]['bo_mode'].length) {
@@ -262,7 +281,19 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			},
 			"voted" : {
 				desc : "Show voted / dropped maps",
-				example : "**Example:** ```\?voted```"}
+				example : "**Example:** ```\?voted```",
+				process: function(bot,msg,values) {
+					var response = [];
+					if (msg.server === undefined) {
+						response.push("You can't get any result in PM");
+					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
+						response.push("There is no process running at the moment");
+					} else {
+						response.push("List of voted maps:");
+					}
+					bot.sendMessage(msg.channel,response.join('\n'));
+				}
+			}
 		}
 		return commands;
 	}

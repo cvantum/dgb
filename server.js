@@ -28,7 +28,7 @@ try {
 }
 
 //////////////////////////////////////
-// Starting Instances from modules
+// Starting instances from every module
 var core = new Core.Commands(config);
 var mp = new Mappool.MappoolCommands(config);
 
@@ -39,6 +39,9 @@ var mybot = new Discord.Client();
 
 mybot.loginWithToken(config.discord_token);
 
+
+//////////////////////////////////////
+// Emitted event on 'ready'
 mybot.on('ready', function () {
 	var statusMessage = [];
 	var serverArray = [];
@@ -80,10 +83,10 @@ console.log(userCommands);
 
 
 //////////////////////////////////////
-// New Message
+// Emitted event on 'message'
 mybot.on('message', function(msg) {
 	//if (msg.content.indexOf('?help') === 0) {
-	
+
 	//if (msg.author.id !== mybot.user.id && msg.content[0] === config.discord_prefix && msg.author.id === config.discord_botOwner) {
 	if (msg.author.id !== mybot.user.id && msg.content[0] === config.discord_prefix) {
 		var command = msg.content.split(" ")[0].substring(1);
@@ -112,7 +115,7 @@ mybot.on('message', function(msg) {
 		} else if (userCommands.hasOwnProperty(command)) {
 			console.log("Emitted user-command");
 			userCommands[command].process(mybot,msg,values);
-			
+
 		} else if ( command === "help") {
 			var response = [];
 			if (values.length === 0) {
@@ -135,7 +138,7 @@ mybot.on('message', function(msg) {
 });
 
 //////////////////////////////////////
-// Welcome-Message for new invitations
+// Emitted event on 'serverCreated' with welcome-PM to Server-Owner
 mybot.on('serverCreated', function(server) {
 	var message = [
 		'Thanks for inviting HAL to your Server',
@@ -150,7 +153,7 @@ mybot.on('serverCreated', function(server) {
 });
 
 //////////////////////////////////////
-// Get List of Commands for loaded modules
+// Get List of Admin-Commands for loaded modules
 function getAdminCommands() {
 	var commands = {};
 	var coreCommands = core.getAdminCommands();
@@ -164,6 +167,8 @@ function getAdminCommands() {
 	return commands;
 }
 
+//////////////////////////////////////
+// Get List of User-Commands for loaded modules
 function getUserCommands() {
 	var commands = {};
 	var coreCommands = core.getUserCommands();
