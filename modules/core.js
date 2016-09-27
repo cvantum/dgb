@@ -1,4 +1,4 @@
-// 
+//
 // Mappool-System zur Auswahl von Maps für ein Wettkampf
 //
 
@@ -21,15 +21,15 @@ exports.Commands = class Commands extends MongoCommands{
 		this.config = config;
 		this.url = 'mongodb://'+config.mongodb_user+':'+config.mongodb_pass+'@localhost:20729/'+config.mongodb+'?authMechanism=DEFAULT&authSource='+config.mongodb;
 	}
-	//Entry-Point for Admin-Commands	
+	//Entry-Point for Admin-Commands
 	getAdminCommands() {
-		var that = this;
+		var self = this;
 		var url = this.url;
 		var commands = {
 			"info" : {
 				desc : "Get stored informations about this discord-server",
 				process: function(bot,msg,values) {
-					that.mongoFindServer("115554690686648327",function(response) {
+					self.mongoFindServer("115554690686648327",function(response) {
 						console.log(response[0]);
 						if (response[0]['admins'].indexOf(msg.author.id) > -1) {
 							bot.sendMessage(msg.channel,"You have granted admin-access");
@@ -43,9 +43,9 @@ exports.Commands = class Commands extends MongoCommands{
 		}
 		return commands;
 	}
-	//Entry-Point for User-Commands	
+	//Entry-Point for User-Commands
 	getUserCommands() {
-		var that = this;
+		var self = this;
 		var url = this.url;
 		var commands = {
 			"info" : {
@@ -73,7 +73,7 @@ exports.Commands = class Commands extends MongoCommands{
 		}
 		return commands;
 	}
-	
+
 	//Update Server-Collection at Start
 	mongoUpdateServer(serverArray) {
 		var url = this.url;
@@ -131,4 +131,3 @@ exports.Commands = class Commands extends MongoCommands{
 		});
 	}
 }
-
