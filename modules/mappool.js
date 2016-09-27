@@ -210,7 +210,10 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
 						response.push("There is no process running at the moment");
 					} else {
-						response.push("List of current mappool");
+						response.push("**List of current mappool**");
+						response.push(self.lockedServers[msg.server.id]['mappool_remain'].join('\n'));
+						response.push("**List of dropped mappool**");
+						response.push(self.lockedServers[msg.server.id]['mappool_dropped'].join('\n'));
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
 				}
@@ -289,7 +292,8 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
 						response.push("There is no process running at the moment");
 					} else {
-						response.push("List of voted maps:");
+						response.push("**List of voted maps:**");
+						response.push(self.lockedServers[msg.server.id]['mappool_voted'].join('\n'));
 					}
 					bot.sendMessage(msg.channel,response.join('\n'));
 				}
