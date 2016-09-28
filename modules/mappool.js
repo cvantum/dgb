@@ -90,7 +90,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?start ift bo3```",
 				process : function(bot,msg,values) {
 					console.log(values);
-					if (msg.type === 'text') {
+					if (msg.channel.type === 'text') {
 						self.mongoActiveModule(self.url,msg.server.id,function(response) {
 							var responseMsg = [];
 							if (response.length === 0) {
@@ -141,7 +141,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?opponent```",
 				process : function(bot,msg,values) {
 					var response = [];
-					if (msg.type !== 'text') {
+					if (msg.channel.type !== 'text') {
 						response.push("You can't add yourself to the process with a DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
 						response.push("Looks like there is no voting started, use  **\?start**");
@@ -173,7 +173,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?abort```",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (msg.type !== 'text') {
+					if (msg.channel.type !== 'text') {
 						response.push("You can't abort the process with a DM");
 					} else if (self.lockedServers.hasOwnProperty(msg.server.id) && self.lockedServers[msg.server.id]['lockedPlayer'] === msg.author.id) {
 						delete self.lockedServers[msg.server.id];
@@ -189,7 +189,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?done```",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (msg.type !== 'text') {
+					if (msg.channel.type !== 'text') {
 						response.push("You can't saving the process with a DM");
 					} else if (self.lockedServers.hasOwnProperty(msg.server.id) && self.lockedServers[msg.server.id]['lockedPlayer'] === msg.author.id) {
 						delete self.lockedServers[msg.server.id];
@@ -205,7 +205,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?mappool | \?mappool <game>```",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (msg.type !== 'text') {
+					if (msg.channel.type !== 'text') {
 						response.push("You can't get any results in DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
 						response.push("There is no process running at the moment");
@@ -223,7 +223,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?pick <number>```",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (msg.type !== 'text') {
+					if (msg.channel.type !== 'text') {
 						response.push("You can't pick a map in DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
 						response.push("There isn't something you can vote");
@@ -256,7 +256,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?drop <number>```",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (msg.type !== 'text') {
+					if (msg.channel.type !== 'text') {
 						response.push("You can't drop a map in DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
 						response.push("There isn't something you can vote");
@@ -287,7 +287,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?voted```",
 				process: function(bot,msg,values) {
 					var response = [];
-					if (msg.type !== 'text') {
+					if (msg.channel.type !== 'text') {
 						response.push("You can't get any result in DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.server.id)) {
 						response.push("There is no process running at the moment");
