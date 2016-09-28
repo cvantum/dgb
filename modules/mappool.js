@@ -129,10 +129,10 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 								responseMsg.push("Looks like you have forgot something");
 								responseMsg.push("**Example:** ```\?start ift bo3```");
 							}
-							bot.sendMessage(msg.channel,responseMsg.join('\n'));
+							msg.channel.sendMessage(responseMsg.join('\n'));
 						});
 					} else {
-						bot.sendMessage(msg.channel,"You can't start this process in PM");
+						msg.channel.sendMessage("You can't start this process in PM");
 					}
 				}
 			},
@@ -164,7 +164,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							response.push("You can start with **\?"+self.lockedServers[msg.server.id]['bo_mode'][0]+'**');
 						}
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 
 				}
 			},
@@ -181,7 +181,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					} else if (self.lockedServers.hasOwnProperty(msg.server.id) && self.lockedServer['lockedPlayer'] !== msg.author.id) {
 						response.push("You are not allowed to cancel the Mappool-Wizard");
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 				}
 			},
 			"done" : {
@@ -197,7 +197,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					} else if (self.lockedServers.hasOwnProperty(msg.server.id) && self.lockedServer['lockedPlayer'] !== msg.author.id) {
 						response.push("You are not allowed to unlock the Mappool-Wizard");
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 				}
 			},
 			"mappool" : {
@@ -215,7 +215,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("**List of dropped mappool**");
 						response.push(self.lockedServers[msg.server.id]['mappool_dropped'].join('\n'));
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 				}
 			},
 			"pick" : {
@@ -242,12 +242,12 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							response.join(String(Number(maps)+1)+": "+self.lockedServers[msg.server.id]['mappool_remain'][maps]);
 						}
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 					if (self.lockedServers[msg.server.id]['turn_number'] === self.lockedServers[msg.server.id]['bo_mode'].length) {
 						console.log("Reached end of votes");
 					} else {
 						console.log("Go ahead with next vote");
-						sendMessage("Okay, "+self.lockedServers[msg.server.id]['curr_voter'].toString()+ "it's your turn");
+						msg.channel.sendMessage("Okay, "+self.lockedServers[msg.server.id]['curr_voter'].toString()+ "it's your turn");
 					}
 				}
 			},
@@ -274,7 +274,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							response.join(String(Number(maps)+1)+": "+self.lockedServers[msg.server.id]['mappool_remain'][maps]);
 						}
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 					if (self.lockedServers[msg.server.id]['turn_number'] === self.lockedServers[msg.server.id]['bo_mode'].length) {
 						console.log("Reached end of votes");
 					} else {
@@ -295,7 +295,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("**List of voted maps:**");
 						response.push(self.lockedServers[msg.server.id]['mappool_voted'].join('\n'));
 					}
-					bot.sendMessage(msg.channel,response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 				}
 			}
 		}
@@ -314,9 +314,9 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							console.log(msg.author.id);
 							console.log(response[0]['admins']);
 							if (response[0]['admins'].indexOf(msg.author.id) > -1) {
-								bot.sendMessage(msg.channel,"You have granted admin-access");
+								msg.channel.sendMessage("You have granted admin-access");
 							} else {
-								bot.sendMessage(msg.channel,"You are not a admin for this server");
+								msg.channel.sendMessage("You are not a admin for this server");
 							}
 							console.log('admin-access abfrage by: ' + msg.author.username );
 						});

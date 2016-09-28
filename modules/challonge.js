@@ -41,7 +41,7 @@ exports.ChallongeCommands = class ChallongeCommands extends ChallongeCore {
 	getUserCommands() {
 		var self = this;
 		var commands = {
-			
+
 		}
 		return commands;
 	}
@@ -59,9 +59,9 @@ exports.ChallongeCommands = class ChallongeCommands extends ChallongeCore {
 							console.log(msg.author.id);
 							console.log(response[0]['admins']);
 							if (response[0]['admins'].indexOf(msg.author.id) > -1) {
-								bot.sendMessage(msg.channel,"You have granted admin-access");
+								msg.channel.sendMessage("You have granted admin-access");
 							} else {
-								bot.sendMessage(msg.channel,"You are not a admin for this server");
+								msg.channel.sendMessage("You are not a admin for this server");
 							}
 							console.log('admin-access abfrage by: ' + msg.author.username );
 						});

@@ -81,15 +81,10 @@ console.log(userCommands);
 
 //////////////////////////////////////
 // Emitted event on 'message'
-mybot.on('message', msg => {
-	//if (msg.content.indexOf('?help') === 0) {
-
-	//if (msg.author.id !== mybot.user.id && msg.content[0] === config.discord_prefix && msg.author.id === config.discord_botOwner) {
-	if (msg.author.id !== mybot.user.id && msg.content.startsWith(config.discord_prefix)) {
+mybot.on('message', (msg) => {
+	if (!msg.author.bot && msg.content.startsWith(config.discord_prefix)) {
 		var command = msg.content.split(" ")[0].substring(1);
 		var values = msg.content.split(" ").slice(1);
-		//mybot.sendMessage(config.discord_botOwner, command);
-		//mybot.sendMessage(config.discord_botOwner, values.join("\n"));
 		if (command === "admin") {
 			console.log("Emitted admin-command");
 			var adminCmd = values[0];
@@ -105,7 +100,7 @@ mybot.on('message', msg => {
 					for (var cmd in adminCommands) {
 						response.push('**'+config.discord_prefix+cmd+'**: '+adminCommands[cmd].desc)
 					}
-					mybot.sendMessage(msg.channel, response.join("\n"));
+					msg.channel.sendMessage(response.join("\n"));
 					console.log("admin-help abfrage by: "+msg.author.username);
 				}
 			}
@@ -123,7 +118,7 @@ mybot.on('message', msg => {
 				console.log(userCommands[values[0]].example);
 				response.push(userCommands[values[0]].example);
 			}
-			mybot.sendMessage(msg.channel, response.join("\n"));
+			msg.channel.sendMessage(response.join("\n"));
 			console.log("help abfrage by: "+msg.author.username);
 		}
 	}
@@ -136,7 +131,7 @@ mybot.on('message', msg => {
 
 //////////////////////////////////////
 // Emitted event on 'serverCreated' with welcome-PM to Server-Owner
-mybot.on('serverCreated', server => {
+mybot.on('guildCreated', (server) => {
 	var message = [
 		'Thanks for inviting HAL to your Server',
 		'This Bot is still under construction',
@@ -145,8 +140,8 @@ mybot.on('serverCreated', server => {
 		'https://github.com/cvantum/dgb'];
 	//server.client.sendMessage(message.join('\n'));
 	console.log('New Server joined: '+server.name);
-	console.log('Server owner: '+server.owner.username+'#'+server.owner.discriminator);
-	mybot.sendMessage(config.discord_botOwner,'New Server joined: '+server.name+'\n'+'Server owner: '+server.owner.username+'#'+server.owner.discriminator);
+	console.log('Server owner: '+server.owner.user.username+'#'+server.owner.user.discriminator);
+	mybot.users.get(config.discord_botOwner).sendMessage('New Server joined: '+server.name+'\n'+'Server owner: '+server.owner.user.username+'#'+server.owner.user.discriminator);
 });
 
 //////////////////////////////////////

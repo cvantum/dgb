@@ -32,9 +32,9 @@ exports.Commands = class Commands extends MongoCommands{
 					self.mongoFindServer("115554690686648327",function(response) {
 						console.log(response[0]);
 						if (response[0]['admins'].indexOf(msg.author.id) > -1) {
-							bot.sendMessage(msg.channel,"You have granted admin-access");
+							msg.channel.sendMessage("You have granted admin-access");
 						} else {
-							bot.sendMessage(msg.channel,"You are not a admin for this server");
+							msg.channel.sendMessage("You are not a admin for this server");
 						}
 						console.log('admin-info abfrage by: ' + msg.author.username );
 					});
@@ -65,7 +65,7 @@ exports.Commands = class Commands extends MongoCommands{
 					response.push(infoText);
 					response.push('Repository: https://github.com/cvantum/dgb');
 					response.push('For help, issues and feature-requests send a message to **\@cvantum**');
-					bot.sendMessage(msg.channel, response.join('\n'));
+					msg.channel.sendMessage(response.join('\n'));
 					// Log to console
 					console.log('info abfrage by: ' + msg.author.username );
 				}
