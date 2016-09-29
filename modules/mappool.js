@@ -50,7 +50,7 @@ class MappoolCore {
 			var db = yield MongoClient.connect(url);
 			console.log("Connected correctly to MongoDB");
 			var col = db.collection('server');
-			var result = yield col.find({"server_id" : serverId, "modules": {$in : ["mappool"]}}).toArray();
+			var result = yield col.find({"server_id" : serverId}).toArray();
 			callback(result);
 			db.close();
 		}).catch( function(err) {
@@ -171,7 +171,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			"abort" : {
 				desc : "Abort voting",
 				example : "**Example:** ```\?abort```",
-				process: function(bot,msg,values) {
+				process : function(bot,msg,values) {
 					var response = [];
 					if (msg.channel.type !== 'text') {
 						response.push("You can't abort the process with a DM");
@@ -187,7 +187,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			"done" : {
 				desc : "Close voting",
 				example : "**Example:** ```\?done```",
-				process: function(bot,msg,values) {
+				process : function(bot,msg,values) {
 					var response = [];
 					if (msg.channel.type !== 'text') {
 						response.push("You can't saving the process with a DM");
@@ -203,7 +203,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			"mappool" : {
 				desc : "List current mappool",
 				example : "**Example:** ```\?mappool | \?mappool <game>```",
-				process: function(bot,msg,values) {
+				process : function(bot,msg,values) {
 					var response = [];
 					if (msg.channel.type !== 'text') {
 						response.push("You can't get any results in DM");
@@ -221,7 +221,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			"pick" : {
 				desc : "Pick a map (if it's your turn)",
 				example : "**Example:** ```\?pick <number>```",
-				process: function(bot,msg,values) {
+				process : function(bot,msg,values) {
 					var response = [];
 					if (msg.channel.type !== 'text') {
 						response.push("You can't pick a map in DM");
@@ -254,7 +254,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			"drop" : {
 				desc : "Drop a map (if it's your turn)",
 				example : "**Example:** ```\?drop <number>```",
-				process: function(bot,msg,values) {
+				process : function(bot,msg,values) {
 					var response = [];
 					if (msg.channel.type !== 'text') {
 						response.push("You can't drop a map in DM");
@@ -285,7 +285,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			"voted" : {
 				desc : "Show voted / dropped maps",
 				example : "**Example:** ```\?voted```",
-				process: function(bot,msg,values) {
+				process : function(bot,msg,values) {
 					var response = [];
 					if (msg.channel.type !== 'text') {
 						response.push("You can't get any result in DM");
@@ -296,6 +296,22 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push(self.lockedServers[msg.guild.id]['mappool_voted'].join('\n'));
 					}
 					msg.channel.sendMessage(response.join('\n'));
+				}
+			},
+			"show" : {
+				desc : "Show Modes and Mappool",
+				example : "**Example:** ```\?voted```",
+				process : function (bot,msg,values) {
+
+					if (msg.channel.type !== 'text') {
+						msg.channel.sendMessage("You can't get any result in DM");
+					} else {
+						self.mongoFindServer(self.url,msg.guild.id,function(response) {
+							var responseMsg = [];
+							console.log(response[0]);
+							console.log(msg.author.id);
+							console.log('show abfrage by: ' + msg.author.username );
+						});
 				}
 			}
 		}
