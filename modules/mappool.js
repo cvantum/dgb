@@ -302,7 +302,6 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				desc : "Show Modes and Mappool",
 				example : "**Example:** ```\?voted```",
 				process : function (bot,msg,values) {
-
 					if (msg.channel.type !== 'text') {
 						msg.channel.sendMessage("You can't get any result in DM");
 					} else {
@@ -312,6 +311,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							console.log(msg.author.id);
 							console.log('show abfrage by: ' + msg.author.username );
 						});
+					}
 				}
 			}
 		}
