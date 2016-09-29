@@ -245,6 +245,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					msg.channel.sendMessage(response.join('\n'));
 					if (self.lockedServers[msg.guild.id]['turn_number'] === self.lockedServers[msg.guild.id]['bo_mode'].length) {
 						console.log("Reached end of votes");
+						msg.channel.sendMessage("Reached end of votes");
 					} else {
 						console.log("Go ahead with next vote");
 						msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn");
@@ -277,8 +278,10 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					msg.channel.sendMessage(response.join('\n'));
 					if (self.lockedServers[msg.guild.id]['turn_number'] === self.lockedServers[msg.guild.id]['bo_mode'].length) {
 						console.log("Reached end of votes");
+						msg.channel.sendMessage("Reached end of votes");
 					} else {
 						console.log("Go ahead with next vote");
+						msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn");
 					}
 				}
 			},
