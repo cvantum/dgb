@@ -300,7 +300,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			},
 			"show" : {
 				desc : "Show Modes and Mappool",
-				example : "**Example:** ```\?voted```",
+				example : "**Example:** ```\?show | <game>```",
 				process : function (bot,msg,values) {
 					if (msg.channel.type !== 'text') {
 						msg.channel.sendMessage("You can't get any result in DM");
@@ -309,6 +309,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							var responseMsg = [];
 							console.log(response[0]);
 							console.log(msg.author.id);
+							console.log(values);
 							console.log('show abfrage by: ' + msg.author.username );
 						});
 					}
