@@ -300,17 +300,33 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			},
 			"show" : {
 				desc : "Show Modes and Mappool",
-				example : "**Example:** ```\?show | <game>```",
+				example : "**Example:** ```\?show mappool | <game>```",
 				process : function (bot,msg,values) {
 					if (msg.channel.type !== 'text') {
 						msg.channel.sendMessage("You can't get any result in DM");
 					} else {
 						self.mongoFindServer(self.url,msg.guild.id,function(response) {
 							var responseMsg = [];
-							console.log(response[0]);
-							console.log(msg.author.id);
-							console.log(values);
+							if (values.length === 0) {
+								msg.channel.sendMessage("Please say what i should show you\n```\?show mappool|<game>```");
+							} else if (values[0] === 'mappool') {
+								console.log(response[0].games);
+								for (var game in response[0].games) {
+									console.log(game);
+									console.log(response[0].games[game]);
+									responseMsg.push('**'+game+':**');
+									responseMsg.push('Mappool:'+response[0].games[game].mappool.toString());
+								}
+							} else if (values.length === 2) {
+								console.log("Testtest");
+							} else {
+								console.log("Unknown valule");
+							}
+							//console.log(response[0]);
+							//console.log(msg.author.id);
+							//console.log(values.length);
 							console.log('show abfrage by: ' + msg.author.username );
+							msg.channel.sendMessage(responseMsg.join('\n'));
 						});
 					}
 				}
