@@ -299,8 +299,8 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				}
 			},
 			"show" : {
-				desc : "Show Modes and Mappool",
-				example : "**Example:** ```\?show mappool | <game>```",
+				desc : "Show stored modes and mappool for this server",
+				example : "**Example:** ```\?show mappools | modes```",
 				process : function (bot,msg,values) {
 					if (msg.channel.type !== 'text') {
 						msg.channel.sendMessage("You can't get any result in DM");
@@ -308,19 +308,29 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						self.mongoFindServer(self.url,msg.guild.id,function(response) {
 							var responseMsg = [];
 							if (values.length === 0) {
-								msg.channel.sendMessage("Please say what i should show you\n```\?show mappool|<game>```");
+								msg.channel.sendMessage("Please say what i should show you\n```\?show mappools | modes```");
 							} else if (values[0] === 'mappool') {
 								console.log(response[0].games);
 								for (var game in response[0].games) {
 									console.log(game);
 									console.log(response[0].games[game]);
 									responseMsg.push('**'+game+':**');
-									responseMsg.push('Mappool:'+response[0].games[game].mappool.toString());
+									responseMsg.push('Mappool:');
+									responseMsg.push('```'+response[0].games[game].mappool.join('\n')+'```');
+								}
+							} else if (values[0] === 'modes') {
+								console.log(response[0].games);
+								for (var game in response[0].games) {
+									console.log(game);
+									console.log(response[0].games[game]);
+									responseMsg.push('**'+game+':**');
+									responseMsg.push('Pick-Drop for round:';
+									responseMsg.push('```'+response[0].games[game].mappool.join('\n')+'```');
 								}
 							} else if (values.length === 2) {
 								console.log("Testtest");
 							} else {
-								console.log("Unknown valule");
+								console.log("Unknown value");
 							}
 							//console.log(response[0]);
 							//console.log(msg.author.id);
