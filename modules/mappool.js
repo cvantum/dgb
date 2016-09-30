@@ -145,8 +145,8 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("You can't add yourself to the process with a DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.guild.id)) {
 						response.push("Looks like there is no voting started, use  **\?start**");
-					} else if (self.lockedServers[msg.guild.id]['lockedPlayer'] === msg.author.id) {
-						response.push("You can't be both players");
+					//} else if (self.lockedServers[msg.guild.id]['lockedPlayer'] === msg.author.id) {
+					//	response.push("You can't be both players");
 					} else {
 						self.lockedServers[msg.guild.id]['player_b'] = msg.author;
 						response.push("Okay. We have two players in here. Let me make a cointoss");
