@@ -235,8 +235,8 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("Please just write down a number");
 					} else if (self.lockedServers[msg.guild.id]['curr_voter'] === msg.author && self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']] === 'pick') {
 						console.log("Voter: "+msg.author.id+"picked "+self.lockedServers[msg.guild.id]['mappool'][Number(values[0])]);
-						self.lockedServers[msg.guild.id]['mappool_voted'].push(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
-						self.lockedServers[msg.guild.id]['mappool_remain'].pop(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
+						self.lockedServers[msg.guild.id]['mappool_dropped'].push(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
+						self.lockedServers[msg.guild.id]['mappool_remain'].splice(Number(values[0])-1,1);
 						self.lockedServers[msg.guild.id]['turn_number'] += 1;
 						self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['next_voter'];
 						self.lockedServers[msg.guild.id]['next_voter'] = msg.author;
@@ -273,7 +273,8 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("Please just write down a number");
 					} else if (self.lockedServers[msg.guild.id]['curr_voter'] === msg.author && self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']] === 'drop') {
 						console.log("Voter: "+msg.author.id+"dropped "+self.lockedServers[msg.guild.id]['mappool'][Number(values[0])]);
-						self.lockedServers[msg.guild.id]['mappool_remain'].pop(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
+						self.lockedServers[msg.guild.id]['mappool_voted'].push(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
+						self.lockedServers[msg.guild.id]['mappool_remain'].splice(Number(values[0])-1,1);
 						self.lockedServers[msg.guild.id]['turn_number'] += 1;
 						self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['next_voter'];
 						self.lockedServers[msg.guild.id]['next_voter'] = msg.author;
