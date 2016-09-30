@@ -152,18 +152,21 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						response.push("Okay. We have two players in here. Let me make a cointoss");
 						if (self.cointoss() === 0) {
 							console.log('Cointoss-Winner = Player A');
-							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['player_a']
-							self.lockedServers[msg.guild.id]['next_voter'] = self.lockedServers[msg.guild.id]['player_b']
+							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['player_a'];
+							self.lockedServers[msg.guild.id]['next_voter'] = self.lockedServers[msg.guild.id]['player_b'];
+							self.lockedServers[msg.guild.id]['cointoss_winner'] = self.lockedServers[msg.guild.id]['player_a'].username;
 							response.push("Winner of cointoss is: "+self.lockedServers[msg.guild.id]['player_a'].toString());
 							response.push("You can start with **\?"+self.lockedServers[msg.guild.id]['bo_mode'][0]+'**');
 						} else {
 							console.log('Cointoss-Winner = Player B');
-							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['player_b']
-							self.lockedServers[msg.guild.id]['next_voter'] = self.lockedServers[msg.guild.id]['player_a']
+							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['player_b'];
+							self.lockedServers[msg.guild.id]['next_voter'] = self.lockedServers[msg.guild.id]['player_a'];
+							self.lockedServers[msg.guild.id]['cointoss_winner'] = self.lockedServers[msg.guild.id]['player_b'].username;
 							response.push("Winner of cointoss is: "+self.lockedServers[msg.guild.id]['player_b'].toString());
 							response.push("You can start with **\?"+self.lockedServers[msg.guild.id]['bo_mode'][0]+'**');
 						}
 					}
+					console.log(self.lockedServers);
 					msg.channel.sendMessage(response.join('\n'));
 
 				}
@@ -223,13 +226,14 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?pick <number>```",
 				process : function(bot,msg,values) {
 					var response = [];
+					console.log(self.lockedServers);
 					if (msg.channel.type !== 'text') {
 						response.push("You can't pick a map in DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.guild.id)) {
 						response.push("There isn't something you can vote");
 					} else if (isNaN(values[0])) {
 						response.push("Please just write down a number");
-					} else if (self.lockedServers[msg.guild.id]['curr_player'] === msg.author && self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']] === 'pick') {
+					} else if (self.lockedServers[msg.guild.id]['curr_voter'] === msg.author && self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']] === 'pick') {
 						console.log("Voter: "+msg.author.id+"picked "+self.lockedServers[msg.guild.id]['mappool'][Number(values[0])]);
 						self.lockedServers[msg.guild.id]['mappool_voted'].push(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
 						self.lockedServers[msg.guild.id]['mappool_remain'].pop(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
@@ -238,8 +242,9 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						self.lockedServers[msg.guild.id]['next_voter'] = msg.author;
 						response.join("Thanks for your vote");
 						response.join("Remaining mappool:");
-						for (maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
-							response.join(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+						for (var maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
+							//console.log(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+							response.push(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
 						}
 					}
 					msg.channel.sendMessage(response.join('\n'));
@@ -248,7 +253,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						msg.channel.sendMessage("Reached end of votes");
 					} else {
 						console.log("Go ahead with next vote");
-						msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn");
+						msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn with: **"+self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']]+"**");
 					}
 				}
 			},
@@ -257,13 +262,16 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 				example : "**Example:** ```\?drop <number>```",
 				process : function(bot,msg,values) {
 					var response = [];
+					console.log(self.lockedServers);
+					//console.log(msg.author);
+					//console.log(self.lockedServers[msg.guild.id]);
 					if (msg.channel.type !== 'text') {
 						response.push("You can't drop a map in DM");
 					} else if (!self.lockedServers.hasOwnProperty(msg.guild.id)) {
 						response.push("There isn't something you can vote");
 					} else if (isNaN(values[0])) {
 						response.push("Please just write down a number");
-					} else if (self.lockedServers[msg.guild.id]['curr_player'] === msg.author && self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']] === 'pick') {
+					} else if (self.lockedServers[msg.guild.id]['curr_voter'] === msg.author && self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']] === 'drop') {
 						console.log("Voter: "+msg.author.id+"dropped "+self.lockedServers[msg.guild.id]['mappool'][Number(values[0])]);
 						self.lockedServers[msg.guild.id]['mappool_remain'].pop(self.lockedServers[msg.guild.id]['mappool_remain'][Number(values[0])]);
 						self.lockedServers[msg.guild.id]['turn_number'] += 1;
@@ -271,8 +279,9 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						self.lockedServers[msg.guild.id]['next_voter'] = msg.author;
 						response.join("Thanks for your vote");
 						response.join("Remaining mappool:");
-						for (maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
-							response.join(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+						for (var maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
+							//console.log(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+							response.push(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
 						}
 					}
 					msg.channel.sendMessage(response.join('\n'));
@@ -281,7 +290,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						msg.channel.sendMessage("Reached end of votes");
 					} else {
 						console.log("Go ahead with next vote");
-						msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn");
+						msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn with: **"+self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']]+"**");
 					}
 				}
 			},
@@ -327,7 +336,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 									console.log(game);
 									console.log(response[0].games[game]);
 									responseMsg.push('**'+game+':**');
-									responseMsg.push('Pick-Drop for round:';
+									responseMsg.push('Pick-Drop for round:');
 									responseMsg.push('```'+response[0].games[game].mappool.join('\n')+'```');
 								}
 							} else if (values.length === 2) {
