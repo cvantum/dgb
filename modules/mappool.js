@@ -334,7 +334,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			},
 			"show" : {
 				desc : "Show stored modes and mappool for this server",
-				example : "**Example:** ```\?show mappools | modes```",
+				example : "**Example:** ```\?show mappool | modes```",
 				process : function (bot,msg,values) {
 					if (msg.channel.type !== 'text') {
 						msg.channel.sendMessage("You can't get any result in DM");
@@ -342,7 +342,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						self.mongoFindServer(self.url,msg.guild.id,function(response) {
 							var responseMsg = [];
 							if (values.length === 0) {
-								msg.channel.sendMessage("Please say what i should show you\n```\?show mappools | modes```");
+								msg.channel.sendMessage("Please say what i should show you\n```\?show mappool | modes```");
 							} else if (values[0] === 'mappool') {
 								console.log(response[0].games);
 								for (var game in response[0].games) {
@@ -358,8 +358,16 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 									console.log(game);
 									console.log(response[0].games[game]);
 									responseMsg.push('**'+game+':**');
-									responseMsg.push('Pick-Drop for round:');
-									responseMsg.push('```'+response[0].games[game].mappool.join('\n')+'```');
+									responseMsg.push('*Votable modes:*');
+									for (var pickModes in response[0].games[game].pick_modes ) {
+										//console.log(pickModes);
+										//console.log(response[0].games[game].pick_modes[pickModes]);
+										responseMsg.push('**'+pickModes+'**');
+										responseMsg.push('```');
+										responseMsg.push(response[0].games[game].pick_modes[pickModes].join('-'));
+										responseMsg.push('```');
+									}
+									//responseMsg.push('```'+response[0].games[game].pick-modes.toString()+'```');
 								}
 							} else if (values.length === 2) {
 								console.log("Testtest");
