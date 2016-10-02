@@ -187,22 +187,22 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 					msg.channel.sendMessage(response.join('\n'));
 				}
 			},
-			"done" : {
-				desc : "Close voting",
-				example : "**Example:** ```\?done```",
-				process : function(bot,msg,values) {
-					var response = [];
-					if (msg.channel.type !== 'text') {
-						response.push("You can't saving the process with a DM");
-					} else if (self.lockedServers.hasOwnProperty(msg.guild.id) && self.lockedServers[msg.guild.id]['lockedPlayer'] === msg.author.id) {
-						delete self.lockedServers[msg.guild.id];
-						response.push("Saved finished  Mappool-Wizard");
-					} else if (self.lockedServers.hasOwnProperty(msg.guild.id) && self.lockedServer['lockedPlayer'] !== msg.author.id) {
-						response.push("You are not allowed to unlock the Mappool-Wizard");
-					}
-					msg.channel.sendMessage(response.join('\n'));
-				}
-			},
+			//"done" : {
+			//	desc : "Close voting",
+			//	example : "**Example:** ```\?done```",
+			//	process : function(bot,msg,values) {
+			//		var response = [];
+			//		if (msg.channel.type !== 'text') {
+			//			response.push("You can't saving the process with a DM");
+			//		} else if (self.lockedServers.hasOwnProperty(msg.guild.id) && self.lockedServers[msg.guild.id]['lockedPlayer'] === msg.author.id) {
+			//			delete self.lockedServers[msg.guild.id];
+			//			response.push("Saved finished  Mappool-Wizard");
+			//		} else if (self.lockedServers.hasOwnProperty(msg.guild.id) && self.lockedServer['lockedPlayer'] !== msg.author.id) {
+			//			response.push("You are not allowed to unlock the Mappool-Wizard");
+			//		}
+			//		msg.channel.sendMessage(response.join('\n'));
+			//	}
+			//},
 			"mappool" : {
 				desc : "List current mappool",
 				example : "**Example:** ```\?mappool | \?mappool <game>```",
@@ -250,23 +250,34 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['next_voter'];
 							self.lockedServers[msg.guild.id]['next_voter'] = msg.author;
 							response.join("Thanks for your vote");
-							response.join("Remaining mappool:");
-							for (var maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
-								//console.log(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
-								response.push(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
-							}
 						} else {
 							response.push("You vote is out of range, try again");
 						}
 						msg.channel.sendMessage(response.join('\n'));
 						if (self.lockedServers[msg.guild.id]['turn_number'] === self.lockedServers[msg.guild.id]['bo_mode'].length) {
+							response = [];
 							console.log("Reached end of votes");
-							msg.channel.sendMessage("Reached end of votes");
 							self.lockedServers[msg.guild.id]['mappool_voted'].push(self.lockedServers[msg.guild.id]['mappool_remain'][0]);
 							self.lockedServers[msg.guild.id]['mappool_remain'].pop();
+							response.push('Congratulations, you have finished your mappool');
+							response.push("*List of voted maps:*");
+							response.push('```');
+							response.push(self.lockedServers[msg.guild.id]['mappool_voted'].join('-'));
+							response.push('```');
+							response.push("**Have fun and good luck :-)**");
+							response.push('*This wizard is now closed and ready for a next vote*');
+							msg.channel.sendMessage(response);
+							delete self.lockedServers[msg.guild.id];
 						} else {
 							console.log("Go ahead with next vote");
-							msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn with: **"+self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']]+"**");
+							response = [];
+							response.push("**Remaining mappool:**");
+							for (var maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
+								//console.log(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+								response.push(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+							}
+							response.push("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn with: **"+self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']]+"**");
+							msg.channel.sendMessage(response);
 						}
 					}
 				}
@@ -294,24 +305,35 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['next_voter'];
 							self.lockedServers[msg.guild.id]['next_voter'] = msg.author;
 							response.join("Thanks for your vote");
-							response.join("Remaining mappool:");
-							for (var maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
-								//console.log(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
-								response.push(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
-							}
 						} else {
 							response.push("You vote is out of range, try again");
 						}
 
 						msg.channel.sendMessage(response.join('\n'));
 						if (self.lockedServers[msg.guild.id]['turn_number'] === self.lockedServers[msg.guild.id]['bo_mode'].length) {
+							response = [];
 							console.log("Reached end of votes");
-							msg.channel.sendMessage("Reached end of votes");
 							self.lockedServers[msg.guild.id]['mappool_voted'].push(self.lockedServers[msg.guild.id]['mappool_remain'][0]);
 							self.lockedServers[msg.guild.id]['mappool_remain'].pop();
+							response.push('Congratulations, you have finished your mappool');
+							response.push("*List of voted maps:*");
+							response.push('```');
+							response.push(self.lockedServers[msg.guild.id]['mappool_voted'].join('-'));
+							response.push('```');
+							response.push("**Have fun and good luck :-)**");
+							response.push('*This wizard is now closed and ready for a next vote*');
+							msg.channel.sendMessage(response);
+							delete self.lockedServers[msg.guild.id];
 						} else {
 							console.log("Go ahead with next vote");
-							msg.channel.sendMessage("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn with: **"+self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']]+"**");
+							response = [];
+							response.push("**Remaining mappool:**");
+							for (var maps in self.lockedServers[msg.guild.id]['mappool_remain']) {
+								//console.log(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+								response.push(String(Number(maps)+1)+": "+self.lockedServers[msg.guild.id]['mappool_remain'][maps]);
+							}
+							response.push("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ "it's your turn with: **"+self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']]+"**");
+							msg.channel.sendMessage(response);
 						}
 					}
 				}
