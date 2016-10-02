@@ -262,7 +262,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							response.push('Congratulations, you have finished your mappool');
 							response.push("*List of voted maps:*");
 							response.push('```');
-							response.push(self.lockedServers[msg.guild.id]['mappool_voted'].join('-'));
+							response.push(self.lockedServers[msg.guild.id]['mappool_voted'].join(' - '));
 							response.push('```');
 							response.push("**Have fun and good luck :-)**");
 							response.push('*This wizard is now closed and ready for a next vote*');
@@ -318,7 +318,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							response.push('Congratulations, you have finished your mappool');
 							response.push("*List of voted maps:*");
 							response.push('```');
-							response.push(self.lockedServers[msg.guild.id]['mappool_voted'].join('-'));
+							response.push(self.lockedServers[msg.guild.id]['mappool_voted'].join(' - '));
 							response.push('```');
 							response.push("**Have fun and good luck :-)**");
 							response.push('*This wizard is now closed and ready for a next vote*');
