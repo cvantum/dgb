@@ -157,6 +157,9 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							self.lockedServers[msg.guild.id]['cointoss_winner'] = self.lockedServers[msg.guild.id]['player_a'].username;
 							response.push("Winner of cointoss is: "+self.lockedServers[msg.guild.id]['player_a'].toString());
 							response.push("You can start with **\?"+self.lockedServers[msg.guild.id]['bo_mode'][0]+'**');
+							response.push("Or you can let your opponent make his first move with: **\?swap**");
+							response.push("This command displays the dropped and untouched maps: **\?mappool**");
+							response.push("This command displays the voted maps: **\?voted**");
 						} else {
 							console.log('Cointoss-Winner = Player B');
 							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['player_b'];
@@ -164,6 +167,9 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							self.lockedServers[msg.guild.id]['cointoss_winner'] = self.lockedServers[msg.guild.id]['player_b'].username;
 							response.push("Winner of cointoss is: "+self.lockedServers[msg.guild.id]['player_b'].toString());
 							response.push("You can start with **\?"+self.lockedServers[msg.guild.id]['bo_mode'][0]+'**');
+							response.push("Or you can let your opponent make his first move with: **\?swap**");
+							response.push("This command displays the dropped and untouched maps: **\?mappool**");
+							response.push("This command displays the voted maps: **\?voted**");
 						}
 					}
 					console.log(self.lockedServers);
@@ -390,51 +396,32 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 						});
 					}
 				}
+			},
+			"swap": {
+				desc: "Swap voting players.",
+				example: "**Example:** ?swap",
+				process: function(bot,msg,values) {
+					var response = [];
+					console.log(self.lockedServers);
+					//console.log(msg.author);
+					//console.log(self.lockedServers[msg.guild.id]);
+					if (msg.channel.type !== 'text') {
+						response.push("You can't drop a map in DM");
+					} else if (!self.lockedServers.hasOwnProperty(msg.guild.id)) {
+						response.push("There isn't something you can vote");
+					} else if (self.lockedServers[msg.guild.id]['curr_voter'] === msg.author && self.lockedServers[msg.guild.id]['turn_number'] === 0 && self.lockedServers[msg.guild.id]['swapped'] === false) {
+						self.lockedServers[msg.guild.id]['swapped'] = true;
+						self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['next_voter'];
+						self.lockedServers[msg.guild.id]['next_voter'] = msg.author;
+						response.push("**Swapped**");
+						response.push("Okay, "+self.lockedServers[msg.guild.id]['curr_voter'].toString()+ " you start voting with: **"+self.lockedServers[msg.guild.id]['bo_mode'][self.lockedServers[msg.guild.id]['turn_number']]+"**");
+						msg.channel.sendMessage(response);
+					}
+				}
 			}
 		}
 		return commands;
 	}
-	getAdminCommands() {
-		var self = this;
-		var commands = {
-			"addGame" : {
-				desc : "Add a new game to Wizard",
-				example : "**Example:** ```\?admin addGame <game>```",
-				process : function(bot,msg,values) {
-						console.log(self.url);
-						self.mongoGrantAdmin(self.url,msg.guild.id,function(response) {
-							console.log(response[0]);
-							console.log(msg.author.id);
-							console.log(response[0]['admins']);
-							if (response[0]['admins'].indexOf(msg.author.id) > -1) {
-								msg.channel.sendMessage("You have granted admin-access");
-							} else {
-								msg.channel.sendMessage("You are not a admin for this server");
-							}
-							console.log('admin-access abfrage by: ' + msg.author.username );
-						});
-					}
-				},
-			"delGame" : {
-				desc : "Delete a game from Wizard",
-				example : "**Example:** ```\?admin delGame <game>```",
-			},
-			"addVote" : {
-				desc : "Add a pick-drop mode to a game"},
-			"delVote" : {
-				desc : "Delete a pick-drop mode from a game"},
-			"updateVote" : {
-				desc : "Update a pick-drop mode"},
-			"addPool" : {
-				desc : "Add a mappool for a game"},
-			"delPool" : {
-				desc : "Delete a mapool for a game"},
-			"updatePool" : {
-				desc : "Update a mapoool for a game"}
-		}
-		return commands;
-	}
-
 	getTempDataMethod() {
 		return {
 			'isLocked' : false,
@@ -444,6 +431,7 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 			'cointoss_winner': '',
 			'bo_mode' : [],
 			'game' : '',
+			'swapped': false,
 			'turn_number' : 0,
 			'curr_voter' : {},
 			'next_voter' : {},

@@ -21,28 +21,6 @@ exports.Commands = class Commands extends MongoCommands{
 		this.config = config;
 		this.url = 'mongodb://'+config.mongodb_user+':'+config.mongodb_pass+'@localhost:20729/'+config.mongodb+'?authMechanism=DEFAULT&authSource='+config.mongodb;
 	}
-	//Entry-Point for Admin-Commands
-	getAdminCommands() {
-		var self = this;
-		var url = this.url;
-		var commands = {
-			"info" : {
-				desc : "Get stored informations about this discord-server",
-				process: function(bot,msg,values) {
-					self.mongoFindServer("115554690686648327",function(response) {
-						console.log(response[0]);
-						if (response[0]['admins'].indexOf(msg.author.id) > -1) {
-							msg.channel.sendMessage("You have granted admin-access");
-						} else {
-							msg.channel.sendMessage("You are not a admin for this server");
-						}
-						console.log('admin-info abfrage by: ' + msg.author.username );
-					});
-				}
-			}
-		}
-		return commands;
-	}
 	//Entry-Point for User-Commands
 	getUserCommands() {
 		var self = this;
