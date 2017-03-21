@@ -158,6 +158,8 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							response.push("Winner of cointoss is: "+self.lockedServers[msg.guild.id]['player_a'].toString());
 							response.push("You can start with **\?"+self.lockedServers[msg.guild.id]['bo_mode'][0]+'**');
 							response.push("Or you can let your opponent make his first move with: **\?swap**");
+							response.push("This command displays the dropped and untouched maps: **\?mappool**");
+							response.push("This command displays the voted maps: **\?voted**");
 						} else {
 							console.log('Cointoss-Winner = Player B');
 							self.lockedServers[msg.guild.id]['curr_voter'] = self.lockedServers[msg.guild.id]['player_b'];
@@ -166,6 +168,8 @@ exports.MappoolCommands = class MappoolCommands extends MappoolCore {
 							response.push("Winner of cointoss is: "+self.lockedServers[msg.guild.id]['player_b'].toString());
 							response.push("You can start with **\?"+self.lockedServers[msg.guild.id]['bo_mode'][0]+'**');
 							response.push("Or you can let your opponent make his first move with: **\?swap**");
+							response.push("This command displays the dropped and untouched maps: **\?mappool**");
+							response.push("This command displays the voted maps: **\?voted**");
 						}
 					}
 					console.log(self.lockedServers);
